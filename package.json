@@ -1,0 +1,13 @@
+{
+  "name": "InstaStats",
+  "version": "1.0.0",
+  "description": "A minimal Electron application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron main.js"
+  },
+  "author": "Jerry Haagsma",
+  "devDependencies": {
+    "electron-prebuilt": "^0.36.0"
+  }
+}
