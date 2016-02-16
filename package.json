@@ -8,6 +8,7 @@
   },
   "author": "Jerry Haagsma",
   "devDependencies": {
-    "electron-prebuilt": "^0.36.0"
+    "electron-prebuilt": "^0.36.0",
+    "superagent": "^1.7.2"
   }
 }
