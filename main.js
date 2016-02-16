@@ -10,7 +10,7 @@
     const BrowserWindow = electron.BrowserWindow;
 
     // Module to make api requests
-    const superagent = require('superagent');
+    const request = require('superagent');
 
     // Application options
     const options = {
@@ -98,16 +98,13 @@
     }
 
     function getInstagramToken(code) {
-        var requestBody = {
-            client_id: options.igClientId,
-            client_secret: options.igClientSecret,
-            code: code,
-            grant_type: 'authorization_code',
-            redirect_uri: options.siteUrl
-        };
-        console.log('Request body: ' + requestBody);
-
-        superagent.post('https://api.instagram.com/oauth/access_token', requestBody)
+        request.post('https://api.instagram.com/oauth/access_token')
+            .type('form')
+            .send({ client_id: options.igClientId })
+            .send({ client_secret: options.igClientSecret })
+            .send({ code: code })
+            .send({ grant_type: 'authorization_code' })
+            .send({ redirect_uri: options.siteUrl })
             .end(function (err, response) {
                 if (response && response.ok) {
                     console.log('token: ' + response.body.access_token);
