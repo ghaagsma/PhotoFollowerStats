@@ -52,7 +52,8 @@
         // Create the browser window.
         mainWindow = new BrowserWindow({
             width: 800,
-            height: 600
+            height: 600,
+            show: false
         });
 
         initializeApp();
@@ -70,8 +71,16 @@
         // Authorize the user when client requests authorization
         ipcMain.on('authorize-user', authorize);
 
+        // Logout the user when the client requests logout
+        ipcMain.on('logout-user', unauthorize);
+
+        loadMainWindow();
+    }
+
+    function loadMainWindow() {
         // Load the index.html of the app
         mainWindow.loadURL('file://' + __dirname + '/app/index.html');
+        mainWindow.show();
 
         // Open the DevTools
         mainWindow.webContents.openDevTools();
@@ -85,7 +94,14 @@
             }),
             authorizationCallback = function (data) {
                 authWindow.destroy();
+                mainWindow.show();
                 event.sender.send('user-authorized', data);
+            },
+            errorCallback = function (error) {
+                // TODO: Render error in mainWindow
+                console.log('Instagram authorization error occurred.');
+                authWindow.destroy();
+                mainWindow.show();
             },
             igUrl = 'https://api.instagram.com/oauth/authorize/' +
             '?response_type=code&scope=follower_list',
@@ -102,27 +118,26 @@
 
         // Load Instragram oauth page
         authWindow.loadURL(authUrl);
+        mainWindow.hide();
         authWindow.show();
     }
 
-    function onUserAuthorized(url, callback) {
-        var raw_code = /code=([^&]*)/.exec(url) || null,
+    function onUserAuthorized(url, callback, errorCallback) {
+        let raw_code = /code=([^&]*)/.exec(url) || null,
             code = (raw_code && raw_code.length > 1) ? raw_code[1] : null,
             raw_error = /\?error=([^&]*)/.exec(url),
             error = (raw_error && raw_error.length > 1) ? raw_error[1] : null;
 
         // If there is a code, proceed to get token from Instagram
         if (code) {
-            getInstagramToken(code, callback);
+            getInstagramToken(code, callback, errorCallback);
         } else if (error) {
-            // TODO: Render error in mainWindow
-            console.log('Instagram authorization error occurred.');
-            authWindow.destroy();
+            errorCallback(error);
         }
     }
 
     // Trade IG authorization code for an IG access token and user data
-    function getInstagramToken(code, callback) {
+    function getInstagramToken(code, callback, errorCallback) {
         request.post('https://api.instagram.com/oauth/access_token').type('form').send({
             client_id: options.igClientId
         }).send({
@@ -137,10 +152,28 @@
             if (response && response.ok) {
                 callback(response.body);
             } else {
-                // Error - Show messages.
                 console.log('Error getting Instagram token');
-                console.log(JSON.stringify(err));
+                errorCallback(err);
             }
         });
+    }
+
+    // Unauthorize the user
+    function unauthorize() {
+        let unauthWindow = new BrowserWindow({
+                height: 200,
+                width: 200,
+                show: false
+            }),
+            logoutUrl = 'https://www.instagram.com/accounts/logout/';
+
+        // On redirect from Instagram, destroy unauth window and reload the main view
+        unauthWindow.webContents.on('did-get-redirect-request', function (event, oldUrl, newUrl) {
+            console.log('did-get-redirect-request from ' + oldUrl + ' to ' + newUrl);
+            unauthWindow.destroy();
+            loadMainWindow();
+        });
+
+        unauthWindow.loadURL(logoutUrl);
     }
 }());

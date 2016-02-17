@@ -4,8 +4,23 @@ body {
     margin: 0;
 }
 #header {
-    height: 50px;
     background-color: #485165;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.logo, .logout {
+    display: inline-block;
+    color: #ffffff;
+}
+.logo {
+    font-family: Allura;
+    font-size: 22px;
+    padding: 0 15px;
+}
+.logout {
+    cursor: pointer;
+    padding: 15px;
 }
 #main-view {
     display: flex;
