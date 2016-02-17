@@ -9,6 +9,9 @@
     // Module to create native browser window.
     const BrowserWindow = electron.BrowserWindow;
 
+    // Module to communicate to the client UI application
+    const ipcMain = electron.ipcMain;
+
     // Module to make api requests
     const request = require('superagent');
 
@@ -48,12 +51,10 @@
         // Create the browser window.
         mainWindow = new BrowserWindow({
             width: 800,
-            height: 600,
-            show: false
+            height: 600
         });
 
-        initializeOauth();
-        mainWindow.show();
+        initializeApp();
 
         // Emitted when the window is closed
         mainWindow.on('closed', function () {
@@ -64,23 +65,45 @@
         });
     }
 
-    function initializeOauth() {
-        // Load the Instagram authentication page
-        var igUrl = 'https://api.instagram.com/oauth/authorize/?response_type=code';
-        var authUrl = igUrl + '&client_id=' + options.igClientId +
-            '&redirect_uri=' + options.siteUrl;
-        mainWindow.loadURL(authUrl);
+    function initializeApp() {
+        // Authorize the user when client requests authorization
+        ipcMain.on('authorize-user', authorize);
 
-        // Handle the response from Instagram
-        mainWindow.webContents.on('will-navigate', function (event, url) {
-            onUserAuthenticated(url);
-        });
-        mainWindow.webContents.on('did-get-redirect-request', function (event, oldUrl, newUrl) {
-            onUserAuthenticated(newUrl);
-        });
+        // Load the index.html of the app
+        mainWindow.loadURL('file://' + __dirname + '/app/index.html');
+
+        // Open the DevTools
+        mainWindow.webContents.openDevTools();
     }
 
-    function onUserAuthenticated(url) {
+    function authorize(event) {
+        let authWindow = new BrowserWindow({ // TODO: Handle window closed case
+                width: 800,
+                height: 600,
+                show: false
+            }),
+            authorizationCallback = function (data) {
+                authWindow.destroy();
+                event.sender.send('user-authorized', data);
+            },
+            igUrl = 'https://api.instagram.com/oauth/authorize/?response_type=code',
+            authUrl = igUrl + '&client_id=' + options.igClientId +
+            '&redirect_uri=' + options.siteUrl;
+
+        // Handle the response from Instagram
+        authWindow.webContents.on('will-navigate', function (event, url) {
+            onUserAuthenticated(url, authorizationCallback);
+        });
+        authWindow.webContents.on('did-get-redirect-request', function (event, oldUrl, newUrl) {
+            onUserAuthenticated(newUrl, authorizationCallback);
+        });
+
+        // Load Instragram oauth page
+        authWindow.loadURL(authUrl);
+        authWindow.show();
+    }
+
+    function onUserAuthenticated(url, callback) {
         var raw_code = /code=([^&]*)/.exec(url) || null,
             code = (raw_code && raw_code.length > 1) ? raw_code[1] : null,
             raw_error = /\?error=([^&]*)/.exec(url),
@@ -88,40 +111,34 @@
 
         // If there is a code, proceed to get token from Instagram
         if (code) {
-            getInstagramToken(code);
+            getInstagramToken(code, callback);
         } else if (error) {
-            // TODO: Render error view
-            console.log('Oops! Something went wrong and we couldn\'t' +
-                'log you in using Instagram. Please try again.');
-            mainWindow.destroy();
+            // TODO: Render error in mainWindow
+            console.log('Instagram authorization error occurred.');
+            authWindow.destroy();
         }
     }
 
-    function getInstagramToken(code) {
-        request.post('https://api.instagram.com/oauth/access_token')
-            .type('form')
-            .send({ client_id: options.igClientId })
-            .send({ client_secret: options.igClientSecret })
-            .send({ code: code })
-            .send({ grant_type: 'authorization_code' })
-            .send({ redirect_uri: options.siteUrl })
-            .end(function (err, response) {
-                if (response && response.ok) {
-                    console.log('token: ' + response.body.access_token);
-                    initializeApp();
-                } else {
-                    // Error - Show messages.
-                    console.log('Error getting Instagram token');
-                    console.log(err);
-                }
-            });
-    }
-
-    function initializeApp() {
-        // Load the index.html of the app
-        mainWindow.loadURL('file://' + __dirname + '/app/index.html');
-
-        // Open the DevTools
-        mainWindow.webContents.openDevTools();
+    // Trade IG authorization code for an IG access token and user data
+    function getInstagramToken(code, callback) {
+        request.post('https://api.instagram.com/oauth/access_token').type('form').send({
+            client_id: options.igClientId
+        }).send({
+            client_secret: options.igClientSecret
+        }).send({
+            code: code
+        }).send({
+            grant_type: 'authorization_code'
+        }).send({
+            redirect_uri: options.siteUrl
+        }).end(function (err, response) {
+            if (response && response.ok) {
+                callback(response.body);
+            } else {
+                // Error - Show messages.
+                console.log('Error getting Instagram token');
+                console.log(JSON.stringify(err));
+            }
+        });
     }
 }());

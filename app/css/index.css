@@ -1,5 +1,28 @@
 body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    margin: 0;
+}
+#header {
+    height: 50px;
+    background-color: #485165;
+}
+#main-view {
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 30px;
+}
+.ig-user {
+    text-align: center;
+}
+.ig-profile-pic {
+    height: 75px;
+    width: 75px;
+}
+.ig-username {
+    font-size: 24px;
+}
+#ig-data {
+    margin-top: 30px;
 }
