@@ -1,7 +1,11 @@
 (function () {
     'use strict';
 
+    // Module to communicate with the server main process
     const ipcRenderer = require('electron').ipcRenderer;
+
+    // Module to make api requests
+    const request = require('superagent');
 
     // Get data from existing session
     let token = window.localStorage.getItem('igAccessToken'),
@@ -21,19 +25,19 @@
     function init() {
         // Request and receive the user data from Electron main process
         if (!token || !user) {
-            ipcRenderer.on('user-authorized', function (event, arg) {
-                setUserData(arg);
-                initializeView();
+            ipcRenderer.on('user-authorized', function (event, data) {
+                setUserData(data);
+                onUserAuthorized();
             });
             ipcRenderer.send('authorize-user');
         } else {
-            initializeView();
+            onUserAuthorized();
         }
     }
 
     function setUserData(data) {
-        if(!data || !data.access_token || !data.user) {
-            // TODO: Handle erroneous user data
+        if (!data || !data.access_token || !data.user) {
+            return renderError();
         }
 
         token = data.access_token;
@@ -42,12 +46,19 @@
         window.localStorage.setItem('igUser', JSON.stringify(user));
     }
 
-    function initializeView() {
+    function renderError() {
         var element = document.querySelector('#main-view');
-        element.innerHTML = getViewMarkupForUser(user);
+        element.innerHTML = 'Oops! There was an error getting the user data ' +
+            'from Instagram. Please try again.';
     }
 
-    function getViewMarkupForUser(user) {
+    function onUserAuthorized() {
+        var element = document.querySelector('#main-view');
+        element.innerHTML = getViewMarkupForUser();
+        getFollowerData();
+    }
+
+    function getViewMarkupForUser() {
         return `
             <div class="ig-user">
                 <img class="ig-profile-pic"
@@ -58,5 +69,12 @@
             </div>
             <div id="ig-data">Loading...</div>
         `;
+    }
+
+    function getFollowerData() {
+        request.get('https://api.instagram.com/v1/users/self/follows?access_token=' + token)
+            .end(function (err, response) {
+                console.log(JSON.stringify(response.body));
+            });
     }
 }());

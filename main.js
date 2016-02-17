@@ -1,6 +1,7 @@
 (function () {
     'use strict';
 
+    // Electron Module
     const electron = require('electron');
 
     // Module to control application life.
@@ -86,16 +87,17 @@
                 authWindow.destroy();
                 event.sender.send('user-authorized', data);
             },
-            igUrl = 'https://api.instagram.com/oauth/authorize/?response_type=code',
+            igUrl = 'https://api.instagram.com/oauth/authorize/' +
+            '?response_type=code&scope=follower_list',
             authUrl = igUrl + '&client_id=' + options.igClientId +
             '&redirect_uri=' + options.siteUrl;
 
         // Handle the response from Instagram
         authWindow.webContents.on('will-navigate', function (event, url) {
-            onUserAuthenticated(url, authorizationCallback);
+            onUserAuthorized(url, authorizationCallback);
         });
         authWindow.webContents.on('did-get-redirect-request', function (event, oldUrl, newUrl) {
-            onUserAuthenticated(newUrl, authorizationCallback);
+            onUserAuthorized(newUrl, authorizationCallback);
         });
 
         // Load Instragram oauth page
@@ -103,7 +105,7 @@
         authWindow.show();
     }
 
-    function onUserAuthenticated(url, callback) {
+    function onUserAuthorized(url, callback) {
         var raw_code = /code=([^&]*)/.exec(url) || null,
             code = (raw_code && raw_code.length > 1) ? raw_code[1] : null,
             raw_error = /\?error=([^&]*)/.exec(url),
