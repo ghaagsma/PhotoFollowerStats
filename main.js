@@ -87,7 +87,7 @@
 
     function loadMainWindow() {
         // Load the index.html of the app
-        mainWindow.loadURL('file://' + __dirname + '/app/index.html');
+        mainWindow.loadURL('file://' + __dirname + '/client/index.html');
         mainWindow.show();
 
         // Open the DevTools
