@@ -25,7 +25,9 @@
 
     // Keep a global reference of the window object, if you don't, the window will
     // be closed automatically when the JavaScript object is garbage collected.
-    let mainWindow;
+    let mainWindow,
+        // Debug flag for logging
+        debug = true;
 
     // This method will be called when Electron has finished
     // initialization and is ready to create browser windows.
@@ -48,6 +50,12 @@
         }
     });
 
+    function log(message) {
+        if (debug) {
+            console.log(message);
+        }
+    }
+
     function createWindow() {
         // Create the browser window.
         mainWindow = new BrowserWindow({
@@ -69,10 +77,10 @@
 
     function initializeApp() {
         // Authorize the user when client requests authorization
-        ipcMain.on('authorize-user', authorize);
+        ipcMain.on('AUTHORIZE_USER', authorize);
 
         // Logout the user when the client requests logout
-        ipcMain.on('logout-user', unauthorize);
+        ipcMain.on('UNAUTHORIZE_USER', unauthorize);
 
         loadMainWindow();
     }
@@ -94,12 +102,12 @@
             }),
             authorizationCallback = function (data) {
                 authWindow.destroy();
+                event.sender.send('USER_AUTHORIZED', data);
                 mainWindow.show();
-                event.sender.send('user-authorized', data);
             },
             errorCallback = function (error) {
                 // TODO: Render error in mainWindow
-                console.log('Instagram authorization error occurred.');
+                log('Instagram authorization error occurred.');
                 authWindow.destroy();
                 mainWindow.show();
             },
@@ -138,7 +146,11 @@
 
     // Trade IG authorization code for an IG access token and user data
     function getInstagramToken(code, callback, errorCallback) {
-        request.post('https://api.instagram.com/oauth/access_token').type('form').send({
+        request.post(
+            'https://api.instagram.com/oauth/access_token'
+        ).type(
+            'form'
+        ).send({
             client_id: options.igClientId
         }).send({
             client_secret: options.igClientSecret
@@ -152,26 +164,24 @@
             if (response && response.ok) {
                 callback(response.body);
             } else {
-                console.log('Error getting Instagram token');
+                log('Error getting Instagram token');
                 errorCallback(err);
             }
         });
     }
 
     // Unauthorize the user
-    function unauthorize() {
+    function unauthorize(event) {
         let unauthWindow = new BrowserWindow({
-                height: 200,
-                width: 200,
                 show: false
             }),
             logoutUrl = 'https://www.instagram.com/accounts/logout/';
 
         // On redirect from /logout, destroy unauth window and reload main view
         unauthWindow.webContents.on('did-get-redirect-request',
-            function (event, oldUrl, newUrl) {
+            function (e, oldUrl, newUrl) {
+                event.sender.send('USER_UNAUTHORIZED');
                 unauthWindow.destroy();
-                loadMainWindow(); // TODO Logout landing page?
             });
 
         unauthWindow.loadURL(logoutUrl);

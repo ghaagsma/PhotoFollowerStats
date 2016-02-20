@@ -1,15 +1,11 @@
 (function () {
     'use strict';
 
-    // Module to communicate with the server main process
-    const ipcRenderer = require('electron').ipcRenderer;
-
     // Module to make api requests
     const request = require('superagent');
 
-    // Get data from existing session
-    let token = window.localStorage.getItem('igAccessToken'),
-        user = getUserFromStorage();
+    // Debug flag for logging
+    let debug = true;
 
     init();
 
@@ -17,19 +13,25 @@
     // Helper Methods
     // *****************************************
 
-    function getUserFromStorage() {
-        let userJson = window.localStorage.getItem('igUser');
-        return !!userJson ? JSON.parse(userJson) : null;
+    function log(message) {
+        if (debug) {
+            console.log(message);
+        }
     }
 
     function init() {
+        // Get data from existing session
+        let token = storage.get('igAccessToken'),
+            user = storage.getObject('igUser');
+
         // Request and receive the user data from Electron main process
         if (!token || !user) {
-            ipcRenderer.on('user-authorized', function (event, data) {
-                setUserData(data);
-                onUserAuthorized();
-            });
-            ipcRenderer.send('authorize-user');
+            serverMessages.listen(serverMessages.USER_AUTHORIZED,
+                function (event, data) {
+                    setUserData(data);
+                    onUserAuthorized();
+                });
+            serverMessages.send(serverMessages.AUTHORIZE_USER);
         } else {
             onUserAuthorized();
         }
@@ -39,11 +41,8 @@
         if (!data || !data.access_token || !data.user) {
             return renderError();
         }
-
-        token = data.access_token;
-        user = data.user;
-        window.localStorage.setItem('igAccessToken', token);
-        window.localStorage.setItem('igUser', JSON.stringify(user));
+        storage.set('igAccessToken', data.access_token);
+        storage.setObject('igUser', data.user);
     }
 
     function renderError() {
@@ -54,11 +53,11 @@
 
     function onUserAuthorized() {
         var element = document.querySelector('#main-view');
-        element.innerHTML = getViewMarkupForUser();
+        element.innerHTML = getViewMarkupForUser(storage.getObject('igUser'));
         getData();
     }
 
-    function getViewMarkupForUser() {
+    function getViewMarkupForUser(user) {
         return `
             <div class="ig-user">
                 <img class="ig-profile-pic"
@@ -72,26 +71,33 @@
     }
 
     function getData() {
-        request.get('https://api.instagram.com/v1/users/self/?access_token=' + token)
-            .end(handleUserData);
-        request.get('https://api.instagram.com/v1/users/self/followed-by/?access_token=' + token)
-            .end(handleFollowedByData);
-        request.get('https://api.instagram.com/v1/users/self/follows/?access_token=' + token)
-            .end(handleFollowsData);
+        let token = storage.get('igAccessToken');
+
+        request.get(
+            'https://api.instagram.com/v1/users/self/?access_token=' + token
+        ).end(handleUserData);
+
+        request.get(
+            'https://api.instagram.com/v1/users/self/followed-by/?access_token=' + token
+        ).end(handleFollowedByData);
+
+        request.get(
+            'https://api.instagram.com/v1/users/self/follows/?access_token=' + token
+        ).end(handleFollowsData);
     }
 
     function handleUserData(err, response) {
-        console.log('User data: ' + JSON.stringify(response.body));
+        log('User data: ' + JSON.stringify(response.body));
         if (err) {
             // TODO
         }
     }
 
     function handleFollowedByData(err, response) {
-        console.log('Followed by: ' + JSON.stringify(response.body));
+        log('Followed by: ' + JSON.stringify(response.body));
     }
 
     function handleFollowsData(err, response) {
-        console.log('Follows: ' + JSON.stringify(response.body));
+        log('Follows: ' + JSON.stringify(response.body));
     }
 }());
