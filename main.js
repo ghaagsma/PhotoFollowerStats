@@ -15,7 +15,6 @@
 
     // Module to communicate with the client
     const clientMessages = require('./server/services/client-messages');
-
     // Application options
     const options = {
         siteUrl: 'https://photofollowerstats.io',
@@ -83,16 +82,14 @@
         // Logout the user when the client requests logout
         clientMessages.on(clientMessages.UNAUTHORIZE_USER, unauthorize);
 
-        loadMainWindow();
-    }
-
-    function loadMainWindow() {
         // Load the index.html of the app
         mainWindow.loadURL('file://' + __dirname + '/client/index.html');
         mainWindow.show();
 
         // Open the DevTools
-        mainWindow.webContents.openDevTools();
+        if (debug) {
+            mainWindow.webContents.openDevTools();
+        }
     }
 
     function authorize(event) {

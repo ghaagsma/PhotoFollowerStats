@@ -63,8 +63,11 @@
                 <img class="ig-profile-pic"
                      src="${user.profile_picture}"
                      alt="User profile picture" />
-                <div class="ig-username">${user.username}</div>
-                <div>${user.bio}</div>
+                <div>
+                    <div class="ig-username">${user.username}</div>
+                    <div class="ig-user-bio">${user.bio}</div>
+                    <div class="ig-user-stats"></div>
+                </div>
             </div>
             <div id="ig-data"></div>
         `;

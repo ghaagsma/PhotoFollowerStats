@@ -3,6 +3,10 @@ var logout;
 (function () {
     'use strict';
 
+    if (!!logout) {
+        return;
+    }
+
     logout = function () {
         window.localStorage.clear();
         serverMessages.listen(serverMessages.USER_UNAUTHORIZED,
