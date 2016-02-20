@@ -63,7 +63,7 @@
                 <img class="ig-profile-pic"
                      src="${user.profile_picture}"
                      alt="User profile picture" />
-                <div>
+                <div class="ig-user-summary">
                     <div class="ig-username">${user.username}</div>
                     <div class="ig-user-bio">${user.bio}</div>
                     <div class="ig-user-stats"></div>
@@ -91,9 +91,21 @@
 
     function handleUserData(err, response) {
         log('User data: ' + JSON.stringify(response.body));
-        if (err) {
+        if (err || !response || !response.body || !response.body.data ||
+            !response.body.data.counts) {
             // TODO
+            return;
         }
+        let element = document.querySelector('.ig-user-stats');
+        element.innerHTML = getUserStatsTemplate(response.body.data.counts);
+    }
+
+    function getUserStatsTemplate(stats) {
+        return `
+            <div><span>${stats.media}</span> posts</div>
+            <div><span>${stats.followed_by}</span> followers</div>
+            <div><span>${stats.follows}</span> following</div>
+        `;
     }
 
     function handleFollowedByData(err, response) {
