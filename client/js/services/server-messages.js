@@ -18,7 +18,18 @@ var serverMessages;
         USER_UNAUTHORIZED: 'USER_UNAUTHORIZED'
     };
 
-    // Listen for message from the server
+    // Listen for messages from the server
+    serverMessages.on = function (messageName, callback) {
+        if (!messageName) {
+            throw 'messageName required to listen for message';
+        }
+        if (!callback || typeof (callback) !== typeof (Function)) {
+            throw 'callback function required to listen for message';
+        }
+        return ipcRenderer.on(messageName, callback);
+    };
+
+    // Listen for one-time message from the server
     serverMessages.listen = function (messageName, callback) {
         if (!messageName) {
             throw 'messageName required to listen for message';
@@ -26,7 +37,7 @@ var serverMessages;
         if (!callback || typeof (callback) !== typeof (Function)) {
             throw 'callback function required to listen for message';
         }
-        ipcRenderer.on(messageName, callback);
+        return ipcRenderer.once(messageName, callback);
     };
 
     // Send a message to the server
@@ -34,6 +45,6 @@ var serverMessages;
         if (!messageName) {
             throw 'messageName required to send message';
         }
-        ipcRenderer.send(messageName, data);
+        return ipcRenderer.send(messageName, data);
     };
 }());

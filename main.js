@@ -10,11 +10,11 @@
     // Module to create native browser window.
     const BrowserWindow = electron.BrowserWindow;
 
-    // Module to communicate to the client UI application
-    const ipcMain = electron.ipcMain;
-
     // Module to make api requests
     const request = require('superagent');
+
+    // Module to communicate with the client
+    const clientMessages = require('./server/services/client-messages');
 
     // Application options
     const options = {
@@ -23,8 +23,9 @@
         igClientSecret: 'c691d06800614f2a95597f9d72cd62ca'
     };
 
-    // Keep a global reference of the window object, if you don't, the window will
-    // be closed automatically when the JavaScript object is garbage collected.
+    // Keep a global reference of the window object, if you don't, the window
+    // will be closed automatically when the JavaScript object is garbage
+    // collected.
     let mainWindow,
         // Debug flag for logging
         debug = true;
@@ -77,10 +78,10 @@
 
     function initializeApp() {
         // Authorize the user when client requests authorization
-        ipcMain.on('AUTHORIZE_USER', authorize);
+        clientMessages.on(clientMessages.AUTHORIZE_USER, authorize);
 
         // Logout the user when the client requests logout
-        ipcMain.on('UNAUTHORIZE_USER', unauthorize);
+        clientMessages.on(clientMessages.UNAUTHORIZE_USER, unauthorize);
 
         loadMainWindow();
     }
@@ -102,7 +103,7 @@
             }),
             authorizationCallback = function (data) {
                 authWindow.destroy();
-                event.sender.send('USER_AUTHORIZED', data);
+                event.sender.send(clientMessages.USER_AUTHORIZED, data);
                 mainWindow.show();
             },
             errorCallback = function (error) {
@@ -180,7 +181,7 @@
         // On redirect from /logout, destroy unauth window and reload main view
         unauthWindow.webContents.on('did-get-redirect-request',
             function (e, oldUrl, newUrl) {
-                event.sender.send('USER_UNAUTHORIZED');
+                event.sender.send(clientMessages.USER_UNAUTHORIZED);
                 unauthWindow.destroy();
             });
 
