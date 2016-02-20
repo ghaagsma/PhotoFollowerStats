@@ -167,12 +167,12 @@
             }),
             logoutUrl = 'https://www.instagram.com/accounts/logout/';
 
-        // On redirect from Instagram, destroy unauth window and reload the main view
-        unauthWindow.webContents.on('did-get-redirect-request', function (event, oldUrl, newUrl) {
-            console.log('did-get-redirect-request from ' + oldUrl + ' to ' + newUrl);
-            unauthWindow.destroy();
-            loadMainWindow();
-        });
+        // On redirect from /logout, destroy unauth window and reload main view
+        unauthWindow.webContents.on('did-get-redirect-request',
+            function (event, oldUrl, newUrl) {
+                unauthWindow.destroy();
+                loadMainWindow(); // TODO Logout landing page?
+            });
 
         unauthWindow.loadURL(logoutUrl);
     }

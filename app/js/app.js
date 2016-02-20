@@ -55,7 +55,7 @@
     function onUserAuthorized() {
         var element = document.querySelector('#main-view');
         element.innerHTML = getViewMarkupForUser();
-        getFollowerData();
+        getData();
     }
 
     function getViewMarkupForUser() {
@@ -67,14 +67,31 @@
                 <div class="ig-username">${user.username}</div>
                 <div>${user.bio}</div>
             </div>
-            <div id="ig-data">Loading...</div>
+            <div id="ig-data"></div>
         `;
     }
 
-    function getFollowerData() {
-        request.get('https://api.instagram.com/v1/users/self/follows?access_token=' + token)
-            .end(function (err, response) {
-                console.log(JSON.stringify(response.body));
-            });
+    function getData() {
+        request.get('https://api.instagram.com/v1/users/self/?access_token=' + token)
+            .end(handleUserData);
+        request.get('https://api.instagram.com/v1/users/self/followed-by/?access_token=' + token)
+            .end(handleFollowedByData);
+        request.get('https://api.instagram.com/v1/users/self/follows/?access_token=' + token)
+            .end(handleFollowsData);
+    }
+
+    function handleUserData(err, response) {
+        console.log('User data: ' + JSON.stringify(response.body));
+        if (err) {
+            // TODO
+        }
+    }
+
+    function handleFollowedByData(err, response) {
+        console.log('Followed by: ' + JSON.stringify(response.body));
+    }
+
+    function handleFollowsData(err, response) {
+        console.log('Follows: ' + JSON.stringify(response.body));
     }
 }());
