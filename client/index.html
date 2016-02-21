@@ -9,13 +9,22 @@
     <link rel="stylesheet" href="css/dashboard.css" />
 </head>
 <body>
-    <div id="header"></div>
-    <div id="main-view">
+    <div id="header">
+        <div class="header-content">
+            <div class="logo">
+                Photo Follower Stats
+            </div>
+            <div class="logout" onclick="logoutController.logout()">
+                Log Out
+            </div>
+        </div>
+    </div>
+    <div id="main">
         <div>Loading...</div>
     </div>
 
     <!-- Templates -->
-    <script src="js/templates/header.js"></script>
+    <script src="js/templates/dashboard.js"></script>
 
     <!-- Services -->
     <script src="js/services/logger.js"></script>

@@ -15,68 +15,39 @@
         logger.setDebug(true);
 
         // Get data from existing session
-        let token = storage.get('igAccessToken'),
-            user = storage.getObject('igUser');
-
-        setHeaderView();
+        let token = storage.getAccessToken(),
+            user = storage.getUser();
 
         // Request and receive the user data from Electron main process
         if (!token || !user) {
             serverMessages.listen(serverMessages.USER_AUTHORIZED,
                 function (event, data) {
-                    setUserData(data);
-                    onUserAuthorized();
+                    setAccessToken(data);
+                    getData();
                 });
             serverMessages.send(serverMessages.AUTHORIZE_USER);
         } else {
-            onUserAuthorized();
+            getData();
         }
     }
 
-    // Set header template in the view
-    function setHeaderView() {
-        let headerElement = document.querySelector('#header');
-        headerElement.innerHTML = getHeaderTemplate();
-    }
-
-    function setUserData(data) {
-        if (!data || !data.access_token || !data.user) {
+    function setAccessToken(data) {
+        if (!data || !data.access_token) {
             return renderError();
         }
-        storage.set('igAccessToken', data.access_token);
-        storage.setObject('igUser', data.user);
+        storage.setAccessToken(data.access_token);
     }
 
     function renderError() {
-        var element = document.querySelector('#main-view');
-        element.innerHTML = 'Oops! There was an error getting the user data ' +
-            'from Instagram. Please try again.';
-    }
-
-    function onUserAuthorized() {
-        var element = document.querySelector('#main-view');
-        element.innerHTML = getViewMarkupForUser(storage.getObject('igUser'));
-        getData();
-    }
-
-    function getViewMarkupForUser(user) {
-        return `
-            <div class="ig-user">
-                <img class="ig-profile-pic"
-                     src="${user.profile_picture}"
-                     alt="User profile picture" />
-                <div class="ig-user-summary">
-                    <div class="ig-username">${user.username}</div>
-                    <div class="ig-user-bio">${user.bio}</div>
-                    <div class="ig-user-stats"></div>
-                </div>
-            </div>
-            <div id="ig-data"></div>
-        `;
+        renderer.render(
+            '#main',
+            dashboardTemplates.error()
+        );
     }
 
     function getData() {
-        let token = storage.get('igAccessToken');
+        let token = storage.getAccessToken(),
+            user = storage.getUser();
 
         request.get(
             'https://api.instagram.com/v1/users/self/?access_token=' + token
@@ -92,22 +63,20 @@
     }
 
     function handleUserData(err, response) {
-        logger.log('User data: ' + JSON.stringify(response.body));
-        if (err || !response || !response.body || !response.body.data ||
-            !response.body.data.counts) {
-            // TODO
-            return;
+        // logger.log('User data: ' + JSON.stringify(response.body));
+        let user = response && response.body && response.body.data;
+        if (err || !user || !user.counts) {
+            return renderError();
         }
-        let element = document.querySelector('.ig-user-stats');
-        element.innerHTML = getUserStatsTemplate(response.body.data.counts);
+        setUser(user);
     }
 
-    function getUserStatsTemplate(stats) {
-        return `
-            <div><span>${stats.media}</span> posts</div>
-            <div><span>${stats.followed_by}</span> followers</div>
-            <div><span>${stats.follows}</span> following</div>
-        `;
+    function setUser(user) {
+        storage.setUser(user);
+        renderer.render(
+            '#main',
+            dashboardTemplates.user(user)
+        );
     }
 
     function handleFollowedByData(err, response) {

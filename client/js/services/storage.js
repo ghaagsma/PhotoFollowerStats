@@ -7,20 +7,33 @@ var storage;
         return logger.errorGlobalConflict('storage');
     }
 
-    storage = {
-        get: function (key) {
-            return window.localStorage.getItem(key);
-        },
-        set: function (key, value) {
+    let set = function (key, value) {
             return window.localStorage.setItem(key, value);
         },
-        getObject: function (key) {
-            let json = storage.get(key);
-            return !!json ? JSON.parse(json) : null;
+        get = function (key) {
+            return window.localStorage.getItem(key);
         },
-        setObject: function (key, value) {
+        setObject = function (key, value) {
             let json = JSON.stringify(value);
-            return storage.set(key, json);
+            return set(key, json);
+        },
+        getObject = function (key) {
+            let json = get(key);
+            return !!json ? JSON.parse(json) : null;
+        };
+
+    storage = {
+        setAccessToken: function (token) {
+            return set('igToken', token);
+        },
+        getAccessToken: function () {
+            return get('igToken');
+        },
+        setUser: function (user) {
+            return setObject('igUser', user);
+        },
+        getUser: function () {
+            return getObject('igUser');
         }
     };
 }());
