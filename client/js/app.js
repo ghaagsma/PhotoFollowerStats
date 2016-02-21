@@ -4,25 +4,21 @@
     // Module to make api requests
     const request = require('superagent');
 
-    // Debug flag for logging
-    let debug = true;
-
     init();
 
     // *****************************************
     // Helper Methods
     // *****************************************
 
-    function log(message) {
-        if (debug) {
-            console.log(message);
-        }
-    }
-
     function init() {
+        // Debug flag for logging
+        logger.setDebug(true);
+
         // Get data from existing session
         let token = storage.get('igAccessToken'),
             user = storage.getObject('igUser');
+
+        setHeaderView();
 
         // Request and receive the user data from Electron main process
         if (!token || !user) {
@@ -35,6 +31,12 @@
         } else {
             onUserAuthorized();
         }
+    }
+
+    // Set header template in the view
+    function setHeaderView() {
+        let headerElement = document.querySelector('#header');
+        headerElement.innerHTML = getHeaderTemplate();
     }
 
     function setUserData(data) {
@@ -90,7 +92,7 @@
     }
 
     function handleUserData(err, response) {
-        log('User data: ' + JSON.stringify(response.body));
+        logger.log('User data: ' + JSON.stringify(response.body));
         if (err || !response || !response.body || !response.body.data ||
             !response.body.data.counts) {
             // TODO
@@ -109,10 +111,10 @@
     }
 
     function handleFollowedByData(err, response) {
-        log('Followed by: ' + JSON.stringify(response.body));
+        logger.log('Followed by: ' + JSON.stringify(response.body));
     }
 
     function handleFollowsData(err, response) {
-        log('Follows: ' + JSON.stringify(response.body));
+        logger.log('Follows: ' + JSON.stringify(response.body));
     }
 }());

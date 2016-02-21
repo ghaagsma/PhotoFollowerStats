@@ -4,7 +4,7 @@ var serverMessages;
     'use strict';
 
     if (!!serverMessages) {
-        return;
+        return logger.errorGlobalConflict('serverMessages');
     }
 
     // Module to communicate with the server main process

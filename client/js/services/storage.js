@@ -4,7 +4,7 @@ var storage;
     'use strict';
 
     if (!!storage) {
-        return;
+        return logger.errorGlobalConflict('storage');
     }
 
     storage = {

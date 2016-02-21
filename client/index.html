@@ -9,19 +9,17 @@
     <link rel="stylesheet" href="css/dashboard.css" />
 </head>
 <body>
-    <div id="header">
-        <div class="logo">
-            Photo Follower Stats
-        </div>
-        <div class="logout" onclick="logout()">
-            Log Out
-        </div>
-    </div>
+    <div id="header"></div>
     <div id="main-view">
         <div>Loading...</div>
     </div>
 
+    <!-- Templates -->
+    <script src="js/templates/header.js"></script>
+
     <!-- Services -->
+    <script src="js/services/logger.js"></script>
+    <script src="js/services/renderer.js"></script>
     <script src="js/services/server-messages.js"></script>
     <script src="js/services/storage.js"></script>
 
