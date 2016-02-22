@@ -10,16 +10,21 @@
 .ig-user {
     display: flex;
     align-items: center;
+    @media (max-width: 600px) {
+        flex-direction: column;
+        text-align: center;
+    }
 }
 .ig-profile-pic {
     height: 150px;
     width: 150px;
     border-radius: 50%;
     border: 1px solid #cccfd0;
-    margin-right: 30px;
+    margin: 0 15px;
 }
 .ig-user-summary {
     max-width: 400px;
+    margin: 15px;
 }
 .ig-username {
     font-size: 34px;
