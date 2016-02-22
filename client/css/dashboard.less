@@ -31,9 +31,18 @@
     margin-top: 14px;
 }
 .ig-user-stats {
-    display: flex;
-    > div {
-        margin-right: 40px;
+    opacity: 0;
+    transition: opacity .4s;
+    padding: 0;
+    &.in {
+        opacity: 1;
+    }
+    > li {
+        display: inline-block;
+        margin-right: 15px;
+        &:last-child {
+            margin-right: 0;
+        }
         > span {
             font-weight: 600;
         }

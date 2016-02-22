@@ -13,11 +13,11 @@ var dashboardTemplates;
                 <div class="ig-user-summary">
                     <div class="ig-username">${user.username}</div>
                     <div class="ig-user-bio">${user.bio}</div>
-                    <div class="ig-user-stats">
-                        <div><span>${user.counts.media}</span> posts</div>
-                        <div><span>${user.counts.followed_by}</span> followers</div>
-                        <div><span>${user.counts.follows}</span> following</div>
-                    </div>
+                    <ul class="ig-user-stats">
+                        <li><span id="ig-user-media"></span> posts</li>
+                        <li><span id="ig-user-followed-by"></span> followers</li>
+                        <li><span id="ig-user-follows"></span> following</li>
+                    </ul>
                 </div>
             </div>
             `;

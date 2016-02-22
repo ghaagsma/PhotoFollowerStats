@@ -23,19 +23,20 @@
             serverMessages.listen(serverMessages.USER_AUTHORIZED,
                 function (event, data) {
                     setAccessToken(data);
-                    getData();
+                    onUserAuthorized();
                 });
             serverMessages.send(serverMessages.AUTHORIZE_USER);
         } else {
-            getData();
+            onUserAuthorized();
         }
     }
 
     function setAccessToken(data) {
-        if (!data || !data.access_token) {
+        if (!data || !data.access_token || !data.user) {
             return renderError();
         }
         storage.setAccessToken(data.access_token);
+        storage.setUser(data.user);
     }
 
     function renderError() {
@@ -45,9 +46,11 @@
         );
     }
 
-    function getData() {
+    function onUserAuthorized() {
         let token = storage.getAccessToken(),
             user = storage.getUser();
+
+        renderer.render('#main', dashboardTemplates.user(user));
 
         request.get(
             'https://api.instagram.com/v1/users/self/?access_token=' + token
@@ -68,15 +71,10 @@
         if (err || !user || !user.counts) {
             return renderError();
         }
-        setUser(user);
-    }
-
-    function setUser(user) {
-        storage.setUser(user);
-        renderer.render(
-            '#main',
-            dashboardTemplates.user(user)
-        );
+        renderer.insert('#ig-user-media', user.counts.media);
+        renderer.insert('#ig-user-followed-by', user.counts.followed_by);
+        renderer.insert('#ig-user-follows', user.counts.follows);
+        renderer.addClass('.ig-user-stats', 'in');
     }
 
     function handleFollowedByData(err, response) {

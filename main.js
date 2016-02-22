@@ -61,6 +61,8 @@
         mainWindow = new BrowserWindow({
             width: 800,
             height: 600,
+            minWidth: 400,
+            minHeight: 150,
             show: false
         });
 

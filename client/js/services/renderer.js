@@ -39,6 +39,32 @@ var renderer;
         append: function (query, template) {
             let element = getElement(query);
             element.insertAdjacentHTML('beforeend', template);
+        },
+        addClass: function (query, className) {
+            let element = getElement(query),
+                currentClass = element.getAttribute('class');
+            if (!currentClass) {
+                element.setAttribute('class', className);
+            } else {
+                let index = currentClass.split(' ').indexOf(className);
+                if (index === -1) {
+                    element.setAttribute(
+                        'class', currentClass + ' ' + className
+                    );
+                }
+            }
+        },
+        removeClass: function (query, className) {
+            let element = getElement(query),
+                currentClass = element.getAttribute('class');
+            if (currentClass) {
+                let classes = currentClass.split(' '),
+                    index = classes.indexOf(className);
+                if (index !== -1) {
+                    classes.splice(index, 1);
+                    element.setAttribute('class', classes.join(' '));
+                }
+            }
         }
     };
 }());
