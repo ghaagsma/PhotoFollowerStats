@@ -1,12 +1,10 @@
-var ClientMessages;
-
 (function () {
     'use strict';
 
     // Module to communicate to the client
     const ipcMain = require('electron').ipcMain;
 
-    ClientMessages = function () {
+    var ClientMessages = function () {
         // Message names
         this.AUTHORIZE_USER = 'AUTHORIZE_USER';
         this.USER_AUTHORIZED = 'USER_AUTHORIZED';
@@ -35,6 +33,6 @@ var ClientMessages;
             return ipcMain.once(messageName, callback);
         };
     };
-}());
 
-module.exports = new ClientMessages();
+    module.exports = new ClientMessages();
+}());

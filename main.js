@@ -15,6 +15,7 @@
 
     // Module to communicate with the client
     const clientMessages = require('./server/services/client-messages');
+    
     // Application options
     const options = {
         siteUrl: 'https://photofollowerstats.io',
