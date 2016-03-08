@@ -1,8 +1,9 @@
 // "out": true
+@import (reference) "global.less";
 #header {
-    background-color: #ffffff;
-    border-bottom: 1px solid #edeeee;
-    color: #125688;
+    background-color: white;
+    border-bottom: 1px solid @neutral-color-medium;
+    color: @primary-color;
 }
 .header-content {
     display: flex;
@@ -21,6 +22,6 @@
     font-weight: 600;
     cursor: pointer;
     &:hover {
-        color: #0d3c5f;
+        color: @primary-color-dark;
     }
 }

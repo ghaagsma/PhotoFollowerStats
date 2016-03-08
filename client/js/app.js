@@ -14,6 +14,9 @@
         // Debug flag for logging
         logger.setDebug(true);
 
+        // Show loader while retrieving data
+        renderer.render('#main', globalTemplates.loader());
+
         // Get data from existing session
         let token = storage.getAccessToken(),
             user = storage.getUser();
